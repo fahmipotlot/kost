@@ -1,7 +1,3 @@
-## CRM Backend
-
-CRM Backend
-
 ## Requirements
 1. PHP 7.3^
 2. PHP Composer installed
