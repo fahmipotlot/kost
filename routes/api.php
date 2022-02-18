@@ -25,5 +25,7 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\Api\v1'], f
 		Route::apiResources([
 			'kost' => KostController::class
 		]);
+
+		Route::get('/kost-search', 'KostController@searchKost');
     });
 });

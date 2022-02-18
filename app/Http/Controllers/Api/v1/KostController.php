@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Auth;
+use DB;
 use App\Models\Kost;
 use App\Http\Middleware\IsOwner;
 
@@ -17,7 +18,7 @@ class KostController extends Controller
      */
     public function __construct()
     {
-        $this->middleware([IsOwner::class])->except('show');
+        $this->middleware([IsOwner::class])->except(['show', 'searchKost']);
     }
 
     /**
@@ -120,5 +121,34 @@ class KostController extends Controller
         return response()->json([
             'message' => 'You have successfully delete kost'
         ], 200);
+    }
+
+    public function searchKost()
+    {
+        $kost = (new Kost)->newQuery();
+
+        if (request()->has('q')) {
+            $q = strtolower(request()->input('q'));
+            $kost->where(function($query) use ($q) {
+                $query->orWhere(DB::raw("LOWER(name)"), 'LIKE', "%".$q."%");
+                $query->orWhere(DB::raw("LOWER(location)"), 'LIKE', "%".$q."%");
+            });
+        }
+
+        if (request()->has('min_price') && is_int(request()->min_price)) {
+            if (request()->has('max_price') && is_int(request()->max_price)) {
+                $max_price = request()->max_price;
+            } else {
+                $max_price = request()->min_price;
+            }
+
+            $kost->whereBetween('price', [request()->min_price, $max_price]);
+        }
+
+        $sort_order = request()->sort_order;
+        $kost->orderBy('price', $sort_order ? $sort_order : 'asc');
+
+        return $kost->paginate(request()->has('per_page') ? request()->per_page : 20)
+            ->appends(request()->except('page'));
     }
 }
