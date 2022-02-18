@@ -59,4 +59,8 @@ class User extends Authenticatable
         }
     }
 
+    public function kosts()
+    {
+        return $this->hasMany(Kost::class);
+    }
 }

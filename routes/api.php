@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\IsOwner;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,5 +21,9 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\Api\v1'], f
 
     Route::group(['middleware' => ['auth:sanctum']], function () {
 	    Route::get('/profile', 'AuthController@profile');
+
+		Route::apiResources([
+			'kost' => KostController::class
+		]);
     });
 });
