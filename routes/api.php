@@ -19,13 +19,15 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\Api\v1'], f
 	Route::post('/register', 'AuthController@register');
 	Route::post('/login', 'AuthController@login');
 
-    Route::group(['middleware' => ['auth:sanctum']], function () {
-	    Route::get('/profile', 'AuthController@profile');
+    Route::group([], function () {
+	    Route::get('/profile', 'AuthController@profile')->middleware(['auth:sanctum']);
+
+		Route::post('/kost/{id}/comment', 'KostController@commentKost');
 
 		Route::apiResources([
 			'kost' => KostController::class
 		]);
 
-		Route::get('/kost-search', 'KostController@searchKost');
+		Route::get('/kost-search', 'KostController@searchKost')->withoutMiddleware(['auth:sanctum']);
     });
 });

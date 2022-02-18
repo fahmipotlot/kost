@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Auth;
 use DB;
 use App\Models\Kost;
+use App\Models\Comment;
 use App\Http\Middleware\IsOwner;
 
 class KostController extends Controller
@@ -18,7 +19,8 @@ class KostController extends Controller
      */
     public function __construct()
     {
-        $this->middleware([IsOwner::class])->except(['show', 'searchKost']);
+        $this->middleware([IsOwner::class])->except(['show', 'searchKost', 'commentKost']);
+        $this->middleware(['auth:sanctum'])->except(['show']);
     }
 
     /**
@@ -71,7 +73,8 @@ class KostController extends Controller
     public function show($id)
     {
         $user = Auth::user();
-        $kost = Kost::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+        $kost = Kost::with(['comments', 'comments.user'])
+            ->where('id', $id)->firstOrFail();
 
         return $kost;
     }
@@ -150,5 +153,41 @@ class KostController extends Controller
 
         return $kost->paginate(request()->has('per_page') ? request()->per_page : 20)
             ->appends(request()->except('page'));
+    }
+
+    public function commentKost($id, Request $request)
+    {
+        $user = Auth::user();
+
+        // check user credit
+        if ($user->type != 2) {
+            if ($user->credit < 5) {
+                return response()->json([
+                    'message' => 'Insufficient Credit'
+                ], 422);
+            }
+        }
+
+        $this->validate(request(), [
+            'notes' => 'required|string'
+        ]);
+
+        $kost = Kost::findOrFail($id);
+
+        $comment = Comment::create([
+            'user_id' => $user->id,
+            'notes' => $request->notes,
+            'kost_id' => $id
+        ]);
+
+        if ($user->type != 2) {
+            // update user credit
+            $credit_balance = $user->credit - 5;
+            $user->update(['credit' => $credit_balance]);
+        }
+
+        return response()->json([
+            'message' => 'success ask kost availability'
+        ], 200);
     }
 }

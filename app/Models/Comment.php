@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Kost extends Model
+class Comment extends Model
 {
     use HasFactory;
 
@@ -16,8 +16,8 @@ class Kost extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function comments()
+    public function kost()
     {
-        return $this->hasMany(Comment::class);
+        return $this->belongsTo(Kost::class);
     }
 }
